@@ -39,16 +39,6 @@ FrontEndEditor.define_field( 'input', 'base', {
 		self.form.trigger('saved.fee', [self.data]);
 	},
 
-	ajax_get: function () {
-		var self = this;
-
-		self.overlay.show();
-
-		self.create_input();
-
-		self._super();
-	},
-
 	ajax_set: function () {
 		var
 			self = this,
@@ -145,6 +135,10 @@ FrontEndEditor.define_field( 'input', 'base', {
 			.append(self.cancel_button);
 
 		self.form.bind('keypress', jQuery.proxy(self, 'keypress'));
+
+		self.overlay.show();
+
+		self.create_input();
 
 		self.ajax_get();
 	},

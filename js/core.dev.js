@@ -11,8 +11,16 @@ jQuery.extend( FrontEndEditor, {
 		return Boolean(this.fieldTypes[field_name]);
 	},
 
-	get_field_instance: function(field_name) {
-		return new this.fieldTypes[field_name]();
+	get_field_instance: function(field_name, data) {
+		data = data || {};
+
+		var editor = new this.fieldTypes[field_name]();
+
+		jQuery.extend(editor, data);
+
+		editor.start();
+
+		return editor;
 	},
 
 	overlay: function($el) {
@@ -97,8 +105,8 @@ jQuery(function($) {
 		return data;
 	}
 
-	// Init hover methods
-	var hover_hide, hover_show;
+	// Init hover method
+	var hover_bind;
 
 	(function () {
 		var
@@ -118,13 +126,6 @@ jQuery(function($) {
 			hover_borders[key] = jQuery('<div>').addClass('fee-hover-' + key).hide().appendTo('body');
 		});
 
-		function hover_hide_immediately() {
-			hover_box.hide();
-
-			hover_borders.top.hide();
-			hover_borders.left.hide();
-		}
-
 		function get_dims($el) {
 			return {
 				'width': $el.width(),
@@ -132,16 +133,23 @@ jQuery(function($) {
 			};
 		}
 
-		hover_hide = function () {
+		function hover_hide_immediately() {
+			hover_box.hide();
+
+			hover_borders.top.hide();
+			hover_borders.left.hide();
+		}
+
+		function hover_hide() {
 			hover_timeout = setTimeout(function () {
 				if ( hover_lock )
 					return;
 
 				hover_hide_immediately();
 			}, 300);
-		};
+		}
 
-		hover_show = function (callback) {
+		function hover_show(callback) {
 			var
 				$self = jQuery(this),
 				offset = $self.offset(),
@@ -187,8 +195,32 @@ jQuery(function($) {
 					'width': HOVER_BORDER
 				})
 				.show();
+		}
+
+		hover_bind = function($el, editor) {
+			$el.mouseout(hover_hide)
+			   .mouseover(function () {
+				hover_show.call( this, jQuery.proxy(editor, 'start_editing') );
+			});
 		};
 	}());
+
+	// Create group instances
+	jQuery('.fee-group').each(function () {
+		var
+			$container = jQuery(this),
+			$elements = $container.find('.fee-field').removeClass('fee-field');
+
+		if ( !$elements.length )
+			return;
+
+		var editor = FrontEndEditor.get_field_instance('group', {
+			container: $container,
+			elements: $elements
+		});
+
+		hover_bind($container, editor);
+	});
 
 	// Create field instances
 	jQuery('.fee-field').each(function () {
@@ -203,20 +235,13 @@ jQuery(function($) {
 			return;
 		}
 
-		editor = FrontEndEditor.get_field_instance(data.type);
-
-		editor = jQuery.extend(editor, {
+		editor = FrontEndEditor.get_field_instance(data.type, {
 			el: $el,
 			data: data,
 			filter: data.filter,
 			type: data.type
 		});
-		editor.start();
 
-		// Bind hover to element
-		$el.mouseout(hover_hide)
-		   .mouseover(function () {
-			hover_show.call( this, jQuery.proxy(editor, 'start_editing') );
-		});
+		hover_bind($el, editor);
 	});
 });
