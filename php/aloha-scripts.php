@@ -47,6 +47,7 @@ abstract class FEE_AlohaEditor {
 		wp_enqueue_script('aloha-plugin-link');
 		wp_enqueue_script('aloha-plugin-list');
 		wp_enqueue_script('aloha-plugin-table');
+		wp_enqueue_script('aloha-plugin-highlighteditables');
 
 		// Custom Plugins
 		$alohaCustomPluginsBaseUrl = plugins_url('aloha-plugins/', FRONT_END_EDITOR_MAIN_FILE);
